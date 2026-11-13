@@ -1,0 +1,288 @@
+BUILD LOG — make.fun bounty "polymarket-nvidia-ceo-forecast-01"
+===============================================================
+Project : Polymarket "Next CEO of NVIDIA?" 4-hour-ahead quantile forecaster
+Account : Ady / @saputra-ady on make.fun; GitHub cervus-snoopy (repo creation NOT done here)
+Bounty  : https://make.fun/bounty/polymarket-nvidia-ceo-forecast-01
+          $250 total, 100 places (1st $40, 2nd $25, 3rd $15, 4th-10th $5,
+          11th-100th $1.50), USDC on Solana, escrow funded 2026-11-13 08:09 UTC.
+Deadline: 2026-11-13 21:00 UTC = Sat 14 Nov 2026 04:00 WIB.
+Builder : Muse subagent (this session), no browser sign-in, no wallet, no payment.
+Scope   : BUILD ONLY. No submission to make.fun, no GitHub repo created,
+          no wallet linked, no payment, no private key/seed used or seen.
+
+All times WIB (UTC+7) unless marked UTC. Started 2026-11-14 ~00:26 WIB
+(17:26 UTC 2026-11-13), finished ~00:36 WIB. ~3.5 h remained at start.
+
+--------------------------------------------------------------------------------
+00:26 WIB — RULES VERIFIED (before writing any code)
+--------------------------------------------------------------------------------
+Sources read (no guessing):
+  * Bounty page via browser.open:
+    https://make.fun/bounty/polymarket-nvidia-ceo-forecast-01
+  * Competition API JSON (full rules text):
+    https://make.fun/api/competitions/polymarket-nvidia-ceo-forecast-01
+    (crawled 2026-11-13 17:26 UTC; rules field lines 6495-6627 read in full)
+  * make.fun skill.md (https://make.fun/skill.md, v1.5.140) — skimmed for
+    entry/transcript requirements (bundle, >=30% counted lines).
+
+Facts established from those sources (quoted/paraphrased from the rules):
+  * Task: forecast the Yes price of every trading market of Polymarket event
+    "next-ceo-of-nvidia" at every minute of the 4 h after each checkpoint.
+  * Final: 12 checkpoints, 4 h apart, 2026-11-13T21:00:00Z to 2026-11-15T17:00:00Z.
+    Practice: 6 cases p00-p05, 4 h apart from 2026-11-12T06:00:00Z;
+    p00-p02 hold 19 markets, p03 holds 23, p04-p05 all 24.
+  * Universe: the 24 markets trading when frozen 2026-11-13T06:20:49Z.
+  * Prices: CLOB prices-history, 1-minute fidelity, order-book midpoint,
+    on a 1-minute UTC grid (last point at or before the minute, carried
+    forward). Prices move in steps; jumps happen (Colette Kress 0.3535 ->
+    0.59 in the minute to 2026-11-12T13:51:00Z, back to 0.4585 next minute).
+  * Input: /input/<id>.in, UTF-8 JSON, keys sorted, no whitespace, one object:
+    schema "makefun/polymarket-case/v1", competition, case, at (ISO 8601 UTC
+    with ms, whole minute), horizon_minutes 240, quantiles
+    [0.05, 0.25, 0.5, 0.75, 0.95], event {slug, title}, markets (universe
+    order): each id (conditionId), name, slug, yes_token, start (first price
+    minute), prices (one number per minute from start to at inclusive;
+    last = price at checkpoint). A case holds 72 h (4,320 min) up to the
+    checkpoint, or from the market's grid start if later.
+  * Program reads $MAKEFUN_INPUT_DIR when set else /input/, writes to
+    $MAKEFUN_OUTPUT_DIR when set else /output/; reads every *.in file in
+    name order, writes one output per case.
+  * Output: /output/<id>.out, regular file (not a link), at most 1,048,576
+    bytes of UTF-8 JSON, exactly one key "forecasts", exactly one row per
+    market of the case ({"id", "q"} only), q exactly 240 rows, each row
+    exactly 5 numbers (levels 0.05, 0.25, 0.5, 0.75, 0.95 in that order),
+    each finite, in [0, 1], non-decreasing (equal fine).
+  * Example (house baseline, market at 0.295): row 1 =
+    [0.290888, 0.293314, 0.295, 0.296686, 0.299112]; row 240 =
+    [0.231295, 0.268877, 0.295, 0.321123, 0.358705].
+  * Scoring: mean pinball loss, 100 * max(tau*(y-q), (tau-1)*(y-q)) in
+    percentage points, over every case/market/minute/level, to 6 decimals,
+    lowest first. Ties by faster run time (run_ms), then earlier receipt.
+    Invalid case = scored as if every quantile were 0.5; any invalid case
+    ranks below all-valid entries and takes no prize.
+  * House baseline: q_tau = x + z_tau * 0.0025 * sqrt(h), z =
+    (-1.644854, -0.674490, 0, 0.674490, 1.644854), clamped [0, 1], rounded
+    6 dp. Practice loss 0.363589 (median error 0.767503, 90% coverage
+    0.949642). House model forecast: per-market sigma (0-0.05 per
+    sqrt-minute) + drift (-0.2 to 0.2 per hour), same replay formula.
+  * Prize gate: a prize needs a loss STRICTLY below the best house entry
+    (baseline or house model, whichever lower) on the final, all cases valid.
+  * Limits: Python 3.13 (python3 /bot/main.py) or Node 22, repo root, ONE of
+    main.py/main.ts (not both); stdlib + vendored source only, no installs,
+    no network; at most 8 s, 1 CPU, 1024 MB, 64 processes per case per run;
+    each case run twice, outputs must be byte-identical; at most 10
+    submissions a day and 10 in all; last submission before deadline is final.
+  * Deliverables: public GitHub repo owned by own GitHub account, created
+    AFTER the competition opened (2026-11-13 09:00 UTC), OSI-approved licence,
+    main.py at repo root; AI coding-agent transcripts uploaded with each
+    submission (>=30% of counted lines must be accounted for by transcripts).
+  * Leaderboard context at build time (API, 17:26 UTC): ~3,235 submissions,
+    best practice scores ~0.213-0.24 (leader @superskie 0.213 per parent
+    brief); most passing entries cluster 0.26-0.34. House baseline 0.313
+    displayed on the page ("Best baseline 0.313") vs 0.363589 practice loss
+    in the rules text — the 0.363589 is the practice number; the 0.313 is
+    the displayed baseline figure. Either way the bar to beat is ~0.31-0.36
+    on practice-style data and unknown on the final.
+  * Escrow: $250 USDC locked, escrow
+    AFps1WwJ4Pk594fC9WYMS156FyGgtRR2CbEsSyMagfjL (Solana mainnet).
+
+Design decisions taken at 00:27 WIB (recorded here so the transcript audit
+can follow them):
+  D1. Python 3.13, stdlib only (json/math/os/sys). No numpy — nothing is
+      installed before the program runs.
+  D2. Beat the baseline on three axes, all estimated from the case's own
+      history only (no network, no hardcoded market knowledge):
+      (a) per-market, per-horizon volatility from empirical H-step change
+          distributions (H in {1,5,30,120,240}), inner scale from IQR
+          (jump-robust), outer scale from 5%-95% range (jump-aware);
+          1-minute scale from MAD over the last 24 h; log-linear
+          interpolation in horizon;
+      (b) shrunk drift: mean 1-min change over last 6 h, winsorized,
+          shrunk 0.7x toward 0, clipped to +/-0.0002/min;
+      (c) cross-market sum discipline: 24 mutually exclusive medians should
+          sum to ~1; shift 40% of the excess beyond 0.02 back toward 1.
+  D3. Normal z per level; inner levels (0.25/0.5/0.75) use inner scale,
+      outer levels (0.05/0.95) use outer scale.
+  D4. Defensive output: clamp [0,1], round 6 dp, force non-decreasing,
+      atomic write via .tmp + os.replace, size check vs 1,048,576 bytes.
+  D5. Determinism: no randomness, no wall-clock, no dict-order dependence
+      (markets emitted in input order).
+
+--------------------------------------------------------------------------------
+00:28 WIB — FILES WRITTEN (v1)
+--------------------------------------------------------------------------------
+  ~/workspace/make-fun/polymarket-nvidia-ceo/main.py      (12,851 bytes, 360 lines at final)
+  ~/workspace/make-fun/polymarket-nvidia-ceo/LICENSE      (MIT, 1,077 bytes)
+  ~/workspace/make-fun/polymarket-nvidia-ceo/README.md    (4,151 bytes)
+  ~/workspace/make-fun/polymarket-nvidia-ceo/tests/gen_sample.py  (4,434 bytes)
+  ~/workspace/make-fun/polymarket-nvidia-ceo/tests/validate.py    (3,767 bytes)
+  ~/workspace/make-fun/polymarket-nvidia-ceo/tests/score.py       (2,542 bytes)
+Local Python is 3.12.3 (sandbox target is 3.13); code uses nothing
+version-specific beyond 3.8-era stdlib, so it runs on 3.13 unchanged.
+
+Test harness design (tests/ are local-only, not part of entry logic):
+  * gen_sample.py — deterministic (seed 20261114) synthetic practice-style
+    case: 24 markets x 4,320 minutes, step-like moves (70% flat minutes,
+    small ticks, rare jumps up to 0.20), renormalised each minute so the
+    24 prices sum to 1; plus a hidden 240-minute future per market saved
+    as p00.future.json for scoring only (main.py never sees it).
+  * validate.py — 10 hard checks mirroring the rules (size, single key,
+    row counts, id match, 240x5 shape, finite, [0,1], monotone, <=6 dp).
+  * score.py — pinball loss exactly as the rules define it, for the entry
+    and for the house baseline on the same hidden future, plus median
+    error and 90% coverage.
+
+--------------------------------------------------------------------------------
+00:29 WIB — TEST RUN 1 (v1, before fixes)
+--------------------------------------------------------------------------------
+  Sample generated: tests/work/p00.in (924,408 bytes, 24 markets, 4,320 min).
+  First attempt used /usr/bin/time — NOT installed (exit 127). Switched to
+  Python timing via subprocess + resource.getrusage (recorded, not hidden).
+  Run 1: exit 0, wall 0.329 s, peak RSS 17.8 MB, out 266,484 bytes,
+         sha256 2906d3d413e4dc7c4eb8d67ce57e22fe2ef6c10d02d46783a92722a11726ffc7
+  Run 2: exit 0, wall 0.301 s, peak RSS 17.9 MB, out 266,484 bytes, same sha256
+  DETERMINISM: PASS (byte-identical)
+  Validation: 10/10 PASS (24 rows, 5,760 quantile rows, 0 bad in every class;
+         medians within 0.05 of checkpoint: 100.0%)
+  Backtest vs baseline: entry 1.356805 vs baseline 1.554134 (-12.70%);
+         median error 4.427402 vs 4.321642; 90% coverage 0.7576 vs 0.5424.
+  NOTE: synthetic future is deliberately harsher than real practice data
+  (losses ~1.36-1.55 vs real ~0.23-0.36), because the generator's jumps are
+  large and frequent. The backtest proves the model beats the baseline in a
+  jump-heavy regime; it does NOT prove a practice win on real data.
+  NOTE 2: coverage 0.7576 < honest 0.90 flagged tails as too narrow at short
+  horizons — the MAD-only outer scale at h=1 ignores jumps (70% flat minutes).
+
+--------------------------------------------------------------------------------
+00:30 WIB — FIX 1: tail-aware outer scale at horizon 1
+--------------------------------------------------------------------------------
+  Change: outer[1] = max(MAD sigma, (q95-q05 of 1-min diffs)/(2*1.644854))
+  instead of outer[1] = MAD sigma. Rationale: MAD sees only the typical
+  tick; the empirical 5%-95% range of the same diffs captures the jump tail.
+  Re-test: entry 1.356495 vs baseline 1.554134 (-12.72%), coverage 0.7595.
+  Effect small (short horizons contribute little loss mass) but principled;
+  kept.
+
+--------------------------------------------------------------------------------
+00:30 WIB — EXPERIMENT: outer widening factor (in /tmp, not in main.py)
+--------------------------------------------------------------------------------
+  Tried OUTER_WIDEN on tail quantiles only, same synthetic case:
+    x1.00 -> 1.356495 | x1.25 -> 1.351966 | x1.50 -> 1.359940
+  x1.25 best, x1.50 worse. Gain from 1.00 -> 1.25 is small (+0.33% relative)
+  and within one-seed noise, but the direction is supported by the coverage
+  diagnostic and by pinball asymmetry (a missed jump costs far more than a
+  slightly wide tail costs at quiet minutes). DECISION: adopt 1.25, document
+  it as modest/not tuned, do not chase further factors on one synthetic seed.
+
+--------------------------------------------------------------------------------
+00:31 WIB — EDGE-CASE TEST (found a real bug)
+--------------------------------------------------------------------------------
+  Edge inputs: (a) the rules' own example — 1 market, 3 prices
+  [0.29, 0.295, 0.295]; (b) 3 markets: constant 0.5 (100 prices), 1 price
+  0.01, 1 price 0.0.
+  Result v1+fix1: both files valid, all format checks PASS. BUT the medians
+  were wrong: constant-0.5 market got median 0.565333, 0.01 market got
+  0.075333. Root cause: the sum-discipline rule forced the 3-market median
+  sum (0.51) toward 1.0, shifting every market by +0.0653 — the missing mass
+  belongs to markets not in the case, not to these three.
+  FIX 2 (00:32 WIB): sum correction now guarded — only when the case holds
+  >= 10 markets AND |median sum - 1| is in (0.02, 0.25]. Docstring updated.
+  A 19-market practice case (p00-p02) still qualifies; a 1-3 market case
+  never gets forced.
+
+--------------------------------------------------------------------------------
+00:32-00:33 WIB — FINAL TEST RUN (v2: fix1 + OUTER_WIDEN 1.25 + fix2)
+--------------------------------------------------------------------------------
+  Full 24-market case, run twice:
+    run1: exit 0, wall 0.396 s; run2: exit 0, wall 0.328 s
+    DETERMINISM: PASS byte-identical (sha256 verified equal across runs)
+    Output: 266,279 bytes (< 1,048,576)
+    Peak RSS ~17.9 MB (children max, measured in run 1 session)
+  Validation (tests/validate.py on tests/work/p00.in vs tests/out1/p00.out):
+    PASS file exists and is a regular file
+    PASS size <= 1,048,576 bytes (266,279 bytes)
+    PASS valid UTF-8 JSON
+    PASS exactly one top-level key 'forecasts'
+    PASS one forecast row per market (24 rows vs 24 markets)
+    PASS forecast ids match case ids (as a set)
+    PASS every q is 240 rows x 5 finite numbers (0 bad)
+    PASS every quantile in [0, 1] (0 bad)
+    PASS every row non-decreasing (0 bad)
+    PASS every quantile rounded to <= 6 dp (0 bad)
+    INFO total quantile rows checked: 5,760
+    INFO medians within 0.05 of checkpoint price: 100.0%
+    validate exit code: 0
+  Backtest (tests/score.py, hidden synthetic future):
+    entry pinball loss : 1.351966 percentage points
+    house baseline loss: 1.554134 percentage points
+    improvement        : 13.01% lower than baseline
+    entry median error : 4.427402 | baseline 4.321642
+    entry 90% coverage : 0.8155 | baseline 0.5424 (honest ~= 0.90)
+    VERDICT: BEATS baseline
+  Edge cases (re-run after fix2):
+    tiny (1 market, 3 prices): all format checks PASS. row0 =
+    [0.290888, 0.293314, 0.295, 0.296686, 0.299112] — EXACTLY the house
+    baseline example from the rules; row239 =
+    [0.231295, 0.268877, 0.295, 0.321123, 0.358705] — also EXACT.
+    (Confirms the <30-price fallback reproduces the baseline bit-for-bit.)
+    edge (constant 0.5 / 0.01 / 0.0): all format checks PASS; medians now
+    correct: 0.5 / 0.01 / 0.0 at both row 0 and row 239.
+    Multi-file input dir (tiny.in + edge.in) produced one .out per .in.
+  Static checks:
+    python3 -m py_compile main.py tests/*.py: OK
+    main.py imports: json, math, os, sys — stdlib only.
+    No randomness / network / wall-clock / system calls in main.py
+    (grep hits were docstring words "random walk" / "No randomness" only).
+    Local Python 3.12.3; code is 3.13-compatible (no version-specific APIs).
+
+--------------------------------------------------------------------------------
+00:34 WIB — FINAL FILE SIZES
+--------------------------------------------------------------------------------
+  main.py           14,176 bytes (360 lines)
+  LICENSE              1,077 bytes (MIT)
+  README.md            4,151 bytes (updated with final test numbers)
+  tests/gen_sample.py  4,434 bytes
+  tests/validate.py    3,767 bytes
+  tests/score.py       2,542 bytes
+  BUILD_LOG.txt        this file
+  tests/work/          generated sample case + hidden future (local only)
+  tests/in1, tests/out1, tests/out2, tests/edge_in, tests/edge_out
+                       run artefacts (local only, not for submission)
+
+--------------------------------------------------------------------------------
+00:35 WIB — WHAT IS STILL MISSING FOR SUBMISSION (parent/browser steps)
+--------------------------------------------------------------------------------
+  1. GitHub repo (Ady, in main browser window — already logged in as
+     cervus-snoopy): create a NEW PUBLIC repo under cervus-snoopy, created
+     after the competition opened (2026-11-13 09:00 UTC) — any new repo now
+     qualifies. Suggested name: polymarket-nvidia-ceo-forecaster
+     (alternatives: nvidia-ceo-forecaster, makefun-nvidia-ceo-forecast).
+     Push main.py + LICENSE + README.md (+ BUILD_LOG.txt and tests/ optional;
+     keep main.py at the REPO ROOT, no main.ts alongside it).
+  2. AI coding transcripts: bundle this build session's transcript with
+     makefun.mjs (per skill.md step 4) so >=30% of counted lines are
+     accounted for. This BUILD_LOG.txt supports that but is not a substitute
+     for the harness session record.
+  3. Solana wallet: link hi5's wallet FAynTDU8h1EQW8drSMLkn5btR336vSFMhUP4JPunQJwa
+     to make.fun and sign the "make.fun entry v1" message (entry signature,
+     good for 10 minutes, one submission only). Reward is escrow-locked, so
+     the signature is required.
+  4. Submit on make.fun before Sat 14 Nov 2026 04:00 WIB (21:00 UTC 13 Nov),
+     then watch the practice grade (~2-4 min): 6 cases, score vs house
+     baseline 0.363589. If the practice score is above the baseline, do NOT
+     burn the remaining submissions blindly — only re-submit after a real
+     model change. Max 10 submissions total; each re-submit needs a fresh
+     signature + fresh transcripts.
+  5. Real-data caveat (honest): local validation used a SYNTHETIC case. The
+     practice grade on real Polymarket history is the first true check; a
+     synthetic -13% vs baseline does not guarantee beating the house on real
+     data (best live entries score ~0.21-0.24 vs baseline 0.36, so the bar is
+     beatable but competitive). If practice comes back above ~0.30, the
+     highest-leverage fix is calibrating sigma on real history (fetch the
+     CLOB prices-history for the event and re-tune the anchor horizons /
+     OUTER_WIDEN), not more synthetic tuning.
+
+--------------------------------------------------------------------------------
+END OF BUILD LOG — 2026-11-14 ~00:36 WIB. No submission, repo, wallet link,
+payment, or key/seed was created, used, or seen during this build.
+--------------------------------------------------------------------------------
